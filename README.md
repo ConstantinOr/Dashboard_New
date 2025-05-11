@@ -1,41 +1,90 @@
+# Investment Dashboard
 
-For seed data please run commands 
-```bash
-pnpm prisma db seed
+A modern web application for tracking and managing investment portfolios. Built with Next.js, Prisma, and PostgreSQL.
 
-Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Features
+
+- Real-time investment portfolio tracking
+- Interactive dashboard with key metrics
+- Investment table with sorting and filtering capabilities
+- ROI filtering and sorting
+- Pagination for large datasets
+- Individual investment payout simulation
+- Row selection and highlighting
+
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
-
+1. Clone the repository
+2. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Set up your environment variables:
+```bash
+cp .env.example .env
+```
+Edit `.env` with your database credentials.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. Run database migrations:
+```bash
+pnpm prisma migrate dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. Seed the database with sample data:
+```bash
+pnpm prisma db seed
+```
+This will create:
+- 100 random investors
+- 5-10 investments per investor
+- Random investment amounts between $100K and $1M
+- ROI between 5% and 35%
 
-## Learn More
+6. Start the development server:
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+7. Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database Management
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To view and manage your database through Prisma Studio:
+```bash
+pnpm prisma studio
+```
+Then open [http://localhost:5555](http://localhost:5555)
 
-## Deploy on Vercel
+## API Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/dashboard` - Fetch dashboard data
+- `POST /api/dashboard/payout` - Simulate payout for a specific investment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features in Detail
+
+### Dashboard Metrics
+- Total Invested Amount
+- Portfolio Value
+- Distributions Received
+- Outstanding Commitments
+
+### Investment Table
+- Sort by Market Value, ROI %, and Next Distribution Date
+- Filter by minimum ROI percentage
+- Pagination with 5 items per page
+- Row selection with visual feedback
+- Individual payout simulation per investment
+
+### Data Management
+- Automatic data refresh after payouts
+- Real-time updates of portfolio metrics
+- Efficient pagination for large datasets 
