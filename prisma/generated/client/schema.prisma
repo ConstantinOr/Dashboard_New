@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model InvestorSummary {
+  id                     Int          @id @default(autoincrement())
+  totalInvested          Float
+  currentValue           Float
+  totalReturn            Float
+  returnPercentage       Float
+  activeInvestments      Int
+  completedInvestments   Int
+  distributionsReceived  Float
+  outstandingCommitments Float
+  investments            Investment[]
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+}
+
+model Investment {
+  id                   Int             @id @default(autoincrement())
+  investorId           Int
+  projectName          String
+  tokenClass           String
+  sharesOwned          Float
+  marketValue          Float
+  roi                  Float
+  nextDistributionDate DateTime?
+  amount               Float
+  status               String
+  startDate            DateTime
+  endDate              DateTime
+  returnRate           Float
+  currentValue         Float
+  investor             InvestorSummary @relation(fields: [investorId], references: [id])
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+}

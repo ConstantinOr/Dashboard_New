@@ -1,6 +1,6 @@
 # Investment Dashboard
 
-A modern web application for tracking and managing investment portfolios. Built with Next.js, Prisma, and PostgreSQL.
+A modern web application for tracking and managing investment portfolios. Built with Next.js, Prisma, and PostgreSQL. Deployed on [Vercel](https://vercel.com).
 
 ## Features
 
@@ -19,6 +19,18 @@ A modern web application for tracking and managing investment portfolios. Built 
 - Prisma ORM
 - PostgreSQL
 - Tailwind CSS
+- Vercel Platform
+
+## Deployment
+
+This project is optimized for deployment on Vercel:
+
+- Automatic deployments from Git
+- Serverless functions for API routes
+- Edge functions for optimal performance
+- Built-in CI/CD pipeline
+- Automatic HTTPS
+- Global CDN
 
 ## Getting Started
 
