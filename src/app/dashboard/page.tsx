@@ -73,7 +73,8 @@ export default function Dashboard() {
       })
       const data = await response.json()
       if (response.ok) {
-        await fetchData() // Refresh data after successful payout
+        await fetchData()
+        setSelectedInvestment(null)
         alert(`Payout simulated successfully for ${investment.projectName}! Amount: ${data.payoutAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`)
       } else {
         alert('Failed to simulate payout')
