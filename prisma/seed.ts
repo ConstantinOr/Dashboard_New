@@ -3,84 +3,86 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+const generateRandomDate = (start: Date, end: Date) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
+}
+
+const generateRandomInvestment = (investorId: number, index: number) => {
+  const startDate = new Date(2023, 0, 1)
+  const endDate = new Date(2025, 11, 31)
+  const investmentDate = generateRandomDate(startDate, endDate)
+  const endInvestmentDate = new Date(investmentDate)
+  endInvestmentDate.setFullYear(endInvestmentDate.getFullYear() + 2)
+
+  const amount = Math.floor(Math.random() * 900000) + 100000 // Random amount between 100k and 1M
+  const roi = Math.floor(Math.random() * 30) + 5 // Random ROI between 5% and 35%
+  const marketValue = amount * (1 + roi / 100)
+  const sharesOwned = Math.floor(amount / 1000) // Rough estimate of shares based on amount
+
+  return {
+    investorId,
+    projectName: `Project ${String.fromCharCode(65 + (index % 26))}${Math.floor(index / 26) + 1}`,
+    tokenClass: ['Series A', 'Series B', 'Series C', 'Class A', 'Class B'][Math.floor(Math.random() * 5)],
+    sharesOwned,
+    marketValue,
+    roi,
+    nextDistributionDate: generateRandomDate(new Date(), endInvestmentDate),
+    amount,
+    status: Math.random() > 0.2 ? 'Active' : 'Completed',
+    startDate: investmentDate,
+    endDate: endInvestmentDate,
+    returnRate: roi,
+    currentValue: marketValue,
+  }
+}
+
+const generateRandomInvestor = (index: number) => {
+  const totalInvested = Math.floor(Math.random() * 9000000) + 1000000 // Random between 1M and 10M
+  const returnPercentage = Math.floor(Math.random() * 30) + 5 // Random between 5% and 35%
+  const currentValue = totalInvested * (1 + returnPercentage / 100)
+  const totalReturn = currentValue - totalInvested
+  const activeInvestments = Math.floor(Math.random() * 20) + 10 // Random between 10 and 30
+  const completedInvestments = Math.floor(Math.random() * 10) + 5 // Random between 5 and 15
+  const distributionsReceived = Math.floor(totalReturn * 0.3) // 30% of total return
+  const outstandingCommitments = Math.floor(totalInvested * 0.4) // 40% of total invested
+
+  return {
+    totalInvested,
+    currentValue,
+    totalReturn,
+    returnPercentage,
+    activeInvestments,
+    completedInvestments,
+    distributionsReceived,
+    outstandingCommitments,
+  }
+}
+
 async function main() {
-  // Create sample investor summaries
-  const investor1 = await prisma.investorSummary.create({
-    data: {
-      totalInvested: 1000000,
-      currentValue: 1200000,
-      totalReturn: 200000,
-      returnPercentage: 20,
-      activeInvestments: 3,
-      completedInvestments: 2,
-      distributionsReceived: 150000,
-      outstandingCommitments: 500000,
-    },
-  })
+  // Create 100 random investors
+  const investors = []
+  for (let i = 0; i < 100; i++) {
+    const investor = await prisma.investorSummary.create({
+      data: generateRandomInvestor(i),
+    })
+    investors.push(investor)
+  }
 
-  const investor2 = await prisma.investorSummary.create({
-    data: {
-      totalInvested: 500000,
-      currentValue: 550000,
-      totalReturn: 50000,
-      returnPercentage: 10,
-      activeInvestments: 2,
-      completedInvestments: 1,
-      distributionsReceived: 75000,
-      outstandingCommitments: 250000,
-    },
-  })
+  // Generate 5-10 random investments for each investor
+  const investments = []
+  for (const investor of investors) {
+    const numInvestments = Math.floor(Math.random() * 6) + 5 // Random between 5 and 10
+    for (let i = 0; i < numInvestments; i++) {
+      investments.push(generateRandomInvestment(investor.id, i))
+    }
+  }
 
-  // Create sample investments
+  // Create all investments
   await prisma.investment.createMany({
-    data: [
-      {
-        investorId: investor1.id,
-        projectName: 'Tech Startup A',
-        tokenClass: 'Series A',
-        sharesOwned: 1000,
-        marketValue: 500000,
-        roi: 25,
-        nextDistributionDate: new Date('2024-12-31'),
-        amount: 400000,
-        status: 'Active',
-        startDate: new Date('2023-01-01'),
-        endDate: new Date('2025-01-01'),
-        returnRate: 25,
-        currentValue: 500000,
-      },
-      {
-        investorId: investor1.id,
-        projectName: 'Real Estate Fund B',
-        tokenClass: 'Class B',
-        sharesOwned: 500,
-        marketValue: 300000,
-        roi: 15,
-        nextDistributionDate: new Date('2024-06-30'),
-        amount: 250000,
-        status: 'Active',
-        startDate: new Date('2023-06-01'),
-        endDate: new Date('2024-12-31'),
-        returnRate: 15,
-        currentValue: 300000,
-      },
-      {
-        investorId: investor2.id,
-        projectName: 'Venture Fund C',
-        tokenClass: 'Series C',
-        sharesOwned: 750,
-        marketValue: 350000,
-        roi: 20,
-        nextDistributionDate: new Date('2024-09-30'),
-        amount: 300000,
-        status: 'Active',
-        startDate: new Date('2023-03-01'),
-        endDate: new Date('2024-12-31'),
-        returnRate: 20,
-        currentValue: 350000,
-      },
-    ],
+    data: investments,
   })
+
+  console.log(`Created ${investors.length} investors and ${investments.length} investments`)
 }
 
 main()
