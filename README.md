@@ -6,9 +6,9 @@ A modern web application for tracking and managing investment portfolios. Built 
 
 - Real-time investment portfolio tracking
 - Interactive dashboard with key metrics
-- Investment table with sorting and filtering capabilities
+- Investment table with server-side sorting and filtering
 - ROI filtering and sorting
-- Pagination for large datasets
+- Server-side pagination for optimal performance
 - Individual investment payout simulation
 - Row selection and highlighting
 
@@ -78,7 +78,13 @@ Then open [http://localhost:5555](http://localhost:5555)
 
 ## API Endpoints
 
-- `GET /api/dashboard` - Fetch dashboard data
+- `GET /api/dashboard` - Fetch dashboard data with pagination, sorting, and filtering
+  - Query parameters:
+    - `page`: Page number (default: 1)
+    - `limit`: Items per page (default: 5)
+    - `sortField`: Field to sort by (default: 'roi')
+    - `sortOrder`: Sort order ('asc' or 'desc', default: 'desc')
+    - `minRoi`: Minimum ROI filter
 - `POST /api/dashboard/payout` - Simulate payout for a specific investment
 
 ## Features in Detail
@@ -90,13 +96,14 @@ Then open [http://localhost:5555](http://localhost:5555)
 - Outstanding Commitments
 
 ### Investment Table
-- Sort by Market Value, ROI %, and Next Distribution Date
-- Filter by minimum ROI percentage
-- Pagination with 5 items per page
+- Server-side sorting by all columns
+- Server-side filtering by minimum ROI percentage
+- Server-side pagination with 5 items per page
 - Row selection with visual feedback
 - Individual payout simulation per investment
 
 ### Data Management
 - Automatic data refresh after payouts
 - Real-time updates of portfolio metrics
-- Efficient pagination for large datasets 
+- Efficient server-side pagination for large datasets
+- Optimized database queries with Prisma 
