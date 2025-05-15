@@ -18,7 +18,14 @@ interface Investment {
   nextDistributionDate: string | null
 }
 
-type SortField = 'roi' | 'nextDistributionDate' | 'marketValue'
+interface PaginationInfo {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+type SortField = 'roi' | 'marketValue' | 'sharesOwned' | 'nextDistributionDate' | 'projectName' | 'tokenClass'
 type SortOrder = 'asc' | 'desc'
 
 const ITEMS_PER_PAGE = 5
@@ -32,14 +39,29 @@ export default function Dashboard() {
   const [roiFilter, setRoiFilter] = useState<number | ''>('')
   const [simulatingPayout, setSimulatingPayout] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: 1,
+    limit: ITEMS_PER_PAGE,
+    totalPages: 0
+  })
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null)
 
   const fetchData = async () => {
     try {
-      const response = await fetch('/api/dashboard')
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: ITEMS_PER_PAGE.toString(),
+        sortField,
+        sortOrder,
+        ...(roiFilter !== '' && { minRoi: roiFilter.toString() })
+      })
+
+      const response = await fetch(`/api/dashboard?${queryParams}`)
       const data = await response.json()
       setSummary(data.summary)
       setInvestments(data.investments)
+      setPagination(data.pagination)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -49,7 +71,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [currentPage, sortField, sortOrder, roiFilter])
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -86,26 +108,6 @@ export default function Dashboard() {
       setSimulatingPayout(false)
     }
   }
-
-  const filteredAndSortedInvestments = investments
-    .filter(investment => roiFilter === '' || investment.roi >= roiFilter)
-    .sort((a, b) => {
-      const multiplier = sortOrder === 'asc' ? 1 : -1
-      
-      if (sortField === 'nextDistributionDate') {
-        const dateA = a.nextDistributionDate ? new Date(a.nextDistributionDate).getTime() : 0
-        const dateB = b.nextDistributionDate ? new Date(b.nextDistributionDate).getTime() : 0
-        return (dateA - dateB) * multiplier
-      }
-      
-      return ((a[sortField] as number) - (b[sortField] as number)) * multiplier
-    })
-
-  const totalPages = Math.ceil(filteredAndSortedInvestments.length / ITEMS_PER_PAGE)
-  const paginatedInvestments = filteredAndSortedInvestments.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>
@@ -154,36 +156,60 @@ export default function Dashboard() {
             </label>
           </div>
         </div>
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token Class</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares Owned</th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('projectName')}
+                >
+                  Project Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('tokenClass')}
+                >
+                  Token Class
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('sharesOwned')}
+                >
+                  Shares Owned
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('marketValue')}
                 >
-                  Market Value {sortField === 'marketValue' && (sortOrder === 'asc' ? '↑' : '↓')}
+                  Market Value
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('roi')}
                 >
-                  ROI % {sortField === 'roi' && (sortOrder === 'asc' ? '↑' : '↓')}
+                  ROI %
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort('nextDistributionDate')}
                 >
-                  Next Distribution {sortField === 'nextDistributionDate' && (sortOrder === 'asc' ? '↑' : '↓')}
+                  Next Distribution
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedInvestments.map((investment, index) => (
+              {investments.map((investment, index) => (
                 <tr 
                   key={index}
                   onClick={() => setSelectedInvestment(investment)}
@@ -222,36 +248,36 @@ export default function Dashboard() {
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedInvestments.length)} of {filteredAndSortedInvestments.length} investments
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} investments
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
+              disabled={pagination.page === 1}
               className="px-2 py-1 text-sm border border-gray-300 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 disabled:opacity-50"
             >
               First
             </button>
             <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(pagination.page - 1)}
+              disabled={pagination.page === 1}
               className="px-2 py-1 text-sm border border-gray-300 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 disabled:opacity-50"
             >
               Previous
             </button>
             <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
+              Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
               className="px-2 py-1 text-sm border border-gray-300 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 disabled:opacity-50"
             >
               Next
             </button>
             <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(pagination.totalPages)}
+              disabled={pagination.page === pagination.totalPages}
               className="px-2 py-1 text-sm border border-gray-300 bg-gray-50 text-gray-600 rounded hover:bg-gray-100 disabled:opacity-50"
             >
               Last
